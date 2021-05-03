@@ -6,7 +6,10 @@ A telegram messenger based chatbot to help people find available vaccination app
 - boto3 
 
 ## Architecture
-This app is designed to run on AWS infrastructures. If you wish to run or test them locally then edit the `secrets.py` file and instead of how it is done, make changes to initate the variable `TOKEN` locally. This is the API token for telegram bot. Therefore you need to create a bot first. Speak to BotFather at https://t.me/botfather to set up your chatbot. Alse update the methods inside `dynamo.py` to use your own document based database (eg mongodb).
+This app is designed to run on AWS infrastructures. If you wish to run or test locally then perform the following edits 
+1. Create a bot first. Speak to BotFather at https://t.me/botfather to set up your chatbot. 
+2. `secrets.py`: instead of how it is done, make changes to initate the variable `TOKEN` locally. This is the API token for telegram bot. 
+3. Update the methods inside `dynamo.py` to use your own document based database (eg mongodb).
 
 ## Execution
 There are two parts to this system
