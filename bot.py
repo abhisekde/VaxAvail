@@ -124,7 +124,7 @@ def get_other_pin(message):
             msg = bot.send_message(chat_id=chat_id, text=ask_pincode, reply_markup=telebot.types.ReplyKeyboardRemove())
             bot.register_next_step_handler(msg, get_pincode_again)
         else:
-            bot.send_message(chat_id=chat_id, text="In case you wish to receive more updates later, just send us a Hi/Hello and we will get back to you. Bye!", reply_markup=telebot.types.ReplyKeyboardRemove())
+            bot.send_message(chat_id=chat_id, text="In case you wish to receive more updates later, just send us a \"Hi\" or \"Hello\" and we will get back to you. Bye!", reply_markup=telebot.types.ReplyKeyboardRemove())
     except Exception as er:
         logging.log(logging.WARN, er.__repr__())
 

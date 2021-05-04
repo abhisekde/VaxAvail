@@ -17,8 +17,6 @@ telebot.logger.setLevel(logging.INFO)
 
 bot = telebot.TeleBot(TOKEN)
 
-WAIT_MIN = 2
-
 def find_vax_pincode(pincode):
     found = []
     try:
@@ -31,7 +29,7 @@ def find_vax_pincode(pincode):
             for center in ddata['centers']:
                 for session in center['sessions']:
                     if session['available_capacity'] > 0 and str(center['pincode']) == pincode:
-                        # print(center['name'], 'at', center['block_name'], center['pincode'], 'has', session['available_capacity'], session['vaccine'], 'vaccine on', session['date'])
+                        # logger.log(logging.INFO, center['name'], 'at', center['block_name'], center['pincode'], 'has', session['available_capacity'], session['vaccine'], 'vaccine on', session['date'])
                         found.append({
                             'center': center['name'], 
                             'block': center['block_name'],
@@ -43,22 +41,24 @@ def find_vax_pincode(pincode):
                             'state_name': center['state_name']
                         })
                     else:
-                        # print('Center search mismatch.', 'Asked pincode', pincode, 'Found:', center['pincode'], 'having', session['available_capacity'], 'doses.')
+                        # logger.log(logging.INFO, 'Center search mismatch.', 'Asked pincode', pincode, 'Found:', center['pincode'], 'having', session['available_capacity'], 'doses.')
                         pass
-    except Exception as err:
-        print(err.__repr__())
+    except Exception as er:
+        logger.log(logging.WARN, er.__repr__())
     
     return found
 
 def parse_output(avail_slots):
     msg_queue = []
     n_count = 0
-    pincode = None
+    pincode = avail_slots[0]['pincode']
     for slot in avail_slots:
-        # print('Available', slot)
+        # logger.log(logging.INFO, 'Available', slot)
         pincode = slot['pincode']
         n_count = 0
         requests_pincode = get_request_pincode(str(pincode))
+        if requests_pincode is None:
+            return msg_queue
         for req in requests_pincode:
             available_capacity = str(slot['capacity'])
             if (slot['min_age_limit'] == 18 and req['age'] == '18-44') or (slot['min_age_limit'] == 45 and req['age'] == '45+'):
@@ -69,13 +69,13 @@ def parse_output(avail_slots):
                 block = slot['block']
                 pincode = slot['pincode']
                 date = slot['date']
-                age = slot['min_age_limit']
+                age = req['age']
                 user = req['user']
                 state_n = slot['state_name']
-                text = f'Hey! {capacity} {vaccine} available at {center}.\nLocation: {center}, {block} {pincode} {state_n}.\nDate: {date} for ages {age}.\nReserver your spot now!'
-                # print(text)
+                text = f'Hey!\n{capacity} {vaccine} available at {center}.\nLocation: {center}, {block} {pincode} {state_n}.\nDate: {date}.\nAges {age}.\nReserve your spot now! Visit https://selfregistration.cowin.gov.in/'
+                # logger.log(logging.INFO, text)
                 # msg_queue.append({'user': user, 'text' : text})
-                print(text)
+                logger.log(logging.INFO, text)
                 send_msg({'user': user, 'text' : text})
                 request_id = req['request_id']
                 set_processed(req)
@@ -83,21 +83,19 @@ def parse_output(avail_slots):
             else:
                 
                 pass
-                # print('Asked age:', req['age'], '; Available age:', age)
-    print('Success hit for', pincode, ':', n_count)
+                # logger.log(logging.INFO, 'Asked age:', req['age'], '; Available age:', age)
+    logger.log(logging.INFO, 'Success hit for ' + str(pincode) + ': ' + str(n_count))
     return msg_queue
 
 def send_msg(msg):
     status_code = 200
     try:
-        # bot_send = f'https://api.telegram.org/bot{TOKEN}/sendMessage'
-        # response = requests.post(url=bot_send, data={'chat_id': msg['user'], 'text': msg['text']})
         chat_id = msg['user']
         text = msg['text']
-        print('Send message to userID:', chat_id, 'text:', text)
+        logger.log(logging.INFO, 'Send message to userID: ' + str(chat_id) + ' text: ' + text)
         bot.send_message(chat_id=chat_id, text=text)
     except Exception as er:
-        print(er.__repr__())
+        logger.log(logging.INFO, er.__repr__())
         status_code = 400
     return status_code
     # return response.status_code
@@ -105,7 +103,9 @@ def send_msg(msg):
 
 def run(pincode):
     reqs = find_vax_pincode(pincode)
-    print('Tentitive hit for', pincode, ':', len(reqs))
+    if len(reqs) == 0:
+        return
+    logger.log(logging.INFO, 'Tentitive hit for '+ str(pincode) + ': ' + str(len(reqs)))
     msg_queue = parse_output(reqs) 
     for msg in msg_queue:
         send_msg(msg)
@@ -122,7 +122,7 @@ def get_feedback(message):
             bot.send_message(chat_id=chat_id, text=a_nok, reply_markup=yn_kb)
             set_processed(message.chat)
     except Exception as er:
-        print(err.__repr__())
+        logger.log(logging.WARN, er.__repr__())
 
 
 def ask_feedback(chat_data):
@@ -136,9 +136,10 @@ def ask_feedback(chat_data):
     bot.register_next_step_handler(msg, get_feedback)
 
 # MAIN
+WAIT_MIN = 0.25
 while True:
     try:
-        print('Checking at:', datetime.now())
+        logger.log(logging.INFO, 'Checking at: '+ datetime.now().isoformat())
         threads = []
         for item in get_all_pincodes():
             t = threading.Thread(target=run, args=(item['pincode'],))
@@ -148,8 +149,8 @@ while True:
             t.start()
         for t in threads:
             t.join()
-        print('Wait...')
+        logger.log(logging.INFO, 'Wait...')
         time.sleep(WAIT_MIN*60)
     except KeyboardInterrupt as er: 
-        print("Bye!")
+        logger.log(logging.WARN, "Bye!")
         exit(0)
