@@ -4,6 +4,8 @@ A telegram messenger based chatbot to help people find available vaccination app
 ## Requirements (python modules)
 - pyTelegramBotAPI
 - boto3 
+- pandas
+- requests
 
 ## Architecture
 This app is designed to run on AWS infrastructures. If you wish to run or test locally then perform the following edits or set up similar infrastructure in AWS 
