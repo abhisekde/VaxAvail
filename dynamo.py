@@ -9,7 +9,6 @@ dynamodb = boto3.resource('dynamodb')
 alert_requests = dynamodb.Table('alert_requests')
 alert_pincodes = dynamodb.Table('alarm_pincodes')
 processed_request = dynamodb.Table('processed_request')
-# chat_data = {'request_id':'1799512726411044', 'user': '1799512726', 'name': 'Abhisek', 'pincode': '411044', 'age': '18-44'}
 
 def set_processed(chat_data):
     alert_requests.update_item(
@@ -77,4 +76,7 @@ def get_all_pincodes():
     except ClientError as e:
         print(e.response['Error']['Message'])
     else:
-        return items
+        return items[:200]
+
+d = get_all_pincodes()
+print(len(d))

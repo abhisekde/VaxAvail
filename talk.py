@@ -7,7 +7,6 @@ dialogs = {
     "setup_ok": "All set! I will message you when slots are available.", 
     "other_pin": "Would you like to consider another area?", 
     "db_fail": "We are unable to take new requests right now. Please try after sometime.", 
-    "q_booking_ok": "Hey! Were you able to reserver your appointment?",
-    "a_booking_ok": "That's fantastic\nWould you like to get more updates on vaccine availability?", 
-    "a_booking_nok": "Don't worry, you will get one soon. I will keep you updated on future availability.\nStay safe!"
+    "consolation": "If you were not able to reserve your spot, just send \"Hi\" or \"Hello\" and we will get you enrolled again ",
+    "wrong_age": "Please select age group from the options provided."
 }

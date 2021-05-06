@@ -132,22 +132,33 @@ def get_age_limit(message):
     try:
         chat_id = message.chat.id
         age_limit = message.text
-        chat_data['age'] = age_limit
-        chat_data['request_id'] = chat_data['user'] + chat_data['pincode']
+        if age_limit != '18-44' and age_limit != '45+':
+            wrong_age = dialogs['wrong_age']
+            ask_age = dialogs['ask_age']
+            msg = bot.send_message(chat_id=chat_id, text=wrong_age, reply_markup=telebot.types.ReplyKeyboardRemove())
+            age_kb = telebot.types.ReplyKeyboardMarkup(row_width=2)
+            age18 = telebot.types.KeyboardButton('18-44')
+            age45 = telebot.types.KeyboardButton('45+')
+            age_kb.add(age18, age45)
+            msg = bot.send_message(chat_id=chat_id, text=ask_age, reply_markup=age_kb)
+            bot.register_next_step_handler(msg, get_age_limit)
+        else:
+            chat_data['age'] = age_limit
+            chat_data['request_id'] = chat_data['user'] + chat_data['pincode']
 
-        logger.log(logging.INFO, 'Age group: ' + age_limit)
+            logger.log(logging.INFO, 'Age group: ' + age_limit)
 
-        msg = bot.send_message(chat_id=chat_id, text=dialogs["setup_ok"], reply_markup=telebot.types.ReplyKeyboardRemove())
-        logger.log(logging.INFO, str(chat_data))
-        save_request(chat_data) # Done
+            msg = bot.send_message(chat_id=chat_id, text=dialogs["setup_ok"], reply_markup=telebot.types.ReplyKeyboardRemove())
+            logger.log(logging.INFO, str(chat_data))
+            save_request(chat_data) # Done
 
-        other_pin = dialogs['other_pin']
-        yn_kb = telebot.types.ReplyKeyboardMarkup(row_width=2) 
-        y_key = telebot.types.KeyboardButton("Yes")
-        n_key = telebot.types.KeyboardButton("No, I am done")
-        yn_kb.add(y_key, n_key)
-        msg = bot.send_message(chat_id=chat_id, text=other_pin, reply_markup=yn_kb)
-        bot.register_next_step_handler(msg, get_other_pin)
+            other_pin = dialogs['other_pin']
+            yn_kb = telebot.types.ReplyKeyboardMarkup(row_width=2) 
+            y_key = telebot.types.KeyboardButton("Yes")
+            n_key = telebot.types.KeyboardButton("No, I am done")
+            yn_kb.add(y_key, n_key)
+            msg = bot.send_message(chat_id=chat_id, text=other_pin, reply_markup=yn_kb)
+            bot.register_next_step_handler(msg, get_other_pin)
 
     except requests.exceptions.ReadTimeout as er:
         logging.log(logging.WARN, er.__repr__())
